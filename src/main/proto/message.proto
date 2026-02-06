@@ -1,0 +1,94 @@
+syntax = "proto3";
+package com.main;
+option java_package = "com.main";
+option java_outer_classname="MsgProtos";
+
+// 平台枚举
+enum Platform {
+  UNKNOWN = 0;
+  WINDOWS = 1;
+  MAC = 2;
+  ANDROID = 3;
+  IOS = 4;
+  WEB = 5;
+}
+
+enum HeadType {
+  LOGIN_REQUEST = 0;
+  LOGIN_RESPONSE = 1;
+  MESSAGE_REQUEST = 2;
+  MESSAGE_RESPONSE = 3;
+  NOTIFICATION = 4;
+  KEEPALIVE_REQUEST = 5;
+  KEEPALIVE_RESPONSE = 6;
+  USER_LIST_REQUEST = 7;
+  USER_LIST_RESPONSE = 8;
+}
+
+// --- 业务数据包定义 ---
+
+message LoginRequest {
+  string uid = 1;
+  string deviceId = 2;
+  string token = 3;
+  Platform platform = 4; // 使用枚举
+  string appVersion = 5;
+}
+
+message LoginResponse {
+  bool result = 1;
+  uint32 code = 2;
+  string info = 3;
+}
+
+message MessageRequest {
+  string msg_id = 1;     // 建议用 string(UUID/Snowflake) 避免 long 精度问题
+  string from_id = 2;
+  string to_id = 3;
+  uint64 timestamp = 4;
+  uint32 msg_type = 5;   // 1:文本, 2:图片...
+  string content = 6;
+  optional string url = 7;
+  optional string extra_json = 8;
+}
+
+message MessageResponse {
+  string msg_id = 1;     // 对应请求的 msg_id
+  bool result = 2;
+  uint32 code = 3;
+}
+
+message MessageNotification {
+  uint32 notify_type = 1;
+  string content = 2;
+  uint64 timestamp = 3;
+}
+
+message UserListRequest {
+
+}
+
+// 服务端返回
+message UserListResponse {
+  repeated string userIds = 1;
+  int32 totalCount = 2;
+}
+
+// --- 统一外层包装 ---
+
+message Message {
+  HeadType type = 1;      // 消息指令类型
+  uint64 sequence = 2;    // 请求序列号，用于响应对齐
+  string sessionId = 3;   // 可选：用于链路追踪
+
+  // 使用 oneof 节省空间，逻辑更清晰
+  oneof body {
+    LoginRequest loginRequest = 4;
+    LoginResponse loginResponse = 5;
+    MessageRequest messageRequest = 6;
+    MessageResponse messageResponse = 7;
+    MessageNotification notification = 8;
+    UserListRequest userListRequest = 9;
+    UserListResponse userListResponse = 10;
+  }
+}

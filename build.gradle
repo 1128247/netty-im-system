@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id "com.google.protobuf" version "0.9.6"
+}
+
+group = 'com.main'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+protobuf {
+    protoc {
+        path = "C:\\Program Files\\protoc\\bin\\protoc.exe"
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation 'ch.qos.logback:logback-classic:1.5.26'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+    implementation 'com.alibaba.fastjson2:fastjson2:2.0.60'
+    implementation 'io.netty:netty-all:4.2.9.Final'
+    // Source: https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
+    implementation 'com.google.protobuf:protobuf-java:4.34.0-RC1'
+}
+
+test {
+    useJUnitPlatform()
+}
