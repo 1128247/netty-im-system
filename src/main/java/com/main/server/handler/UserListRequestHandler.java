@@ -18,6 +18,7 @@ public class UserListRequestHandler extends SimpleChannelInboundHandler<MsgProto
     MsgProtos.Message message = MsgProtos.Message.newBuilder()
         .setType(MsgProtos.HeadType.USER_LIST_RESPONSE)
         .setUserListResponse(response).build();
+    //返回在线的用户
     channelHandlerContext.writeAndFlush(message);
 
   }

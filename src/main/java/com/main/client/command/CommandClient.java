@@ -1,10 +1,8 @@
 package com.main.client.command;
 
+import com.google.protobuf.ByteString;
 import com.main.MsgProtos;
-import com.main.client.handler.LoginResponseHandler;
-import com.main.client.handler.MessageReceiveHandler;
-import com.main.client.handler.MessageResponseHandler;
-import com.main.client.handler.UserListResponseHandler;
+import com.main.client.handler.*;
 import com.main.client.sender.ChatSender;
 import com.main.client.sender.LoginSender;
 import com.main.client.session.SessionManager;
@@ -20,10 +18,13 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.CountDownLatch;
+import java.util.Set;
+import java.util.concurrent.*;
 
 @Slf4j
 public class CommandClient {
@@ -33,9 +34,11 @@ public class CommandClient {
   private final LoginSender sender = new LoginSender();
   private final ChatSender chatSender = new ChatSender();
   public static final CountDownLatch LOGIN_LATCH = new CountDownLatch(1);
+  public static CompletableFuture<Set<String>> userListFuture;
+  public static Set<String> userListOnLine;
   public static volatile String failReason = "";         // 失败原因
 
-  public void connect() throws InterruptedException {
+  public void connect() throws InterruptedException, ExecutionException, TimeoutException {
     EventLoopGroup eventExecutors = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
     Bootstrap bootstrap = new Bootstrap();
     bootstrap.group(eventExecutors)
@@ -49,11 +52,14 @@ public class CommandClient {
                 .addLast(new ProtobufDecoder())
                 .addLast(new ProtobufVarint32LengthFieldPrepender())
                 .addLast(new ProtobufEncoder())
+                .addLast(new IdleStateHandler(0, 30,0))
                 .addLast(new PacketDispatcher())
                 .addLast(new LoginResponseHandler())
                 .addLast(new MessageResponseHandler())
                 .addLast(new UserListResponseHandler())
-                .addLast(new MessageReceiveHandler());
+                .addLast(new MessageReceiveHandler())
+                .addLast(new NotificationHandler())
+                .addLast(new HeartBeatArtisanClientHandler());
           }
         });
     //获取连接
@@ -68,7 +74,8 @@ public class CommandClient {
 
   }
 
-  public void startCommandThread()throws InterruptedException{
+  public void startCommandThread() throws InterruptedException, ExecutionException, TimeoutException {
+    userListFuture = new CompletableFuture<>();
     Thread.currentThread().setName("主线程");
     log.info("发送登录请求");
     Scanner scanner = new Scanner(System.in);
@@ -109,7 +116,7 @@ public class CommandClient {
   }
 
 
-  public static void main(String[] args) throws InterruptedException{
+  public static void main(String[] args) throws InterruptedException, ExecutionException, TimeoutException {
     new CommandClient().connect();
   }
 }

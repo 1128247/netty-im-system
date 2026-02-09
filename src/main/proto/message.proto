@@ -59,7 +59,7 @@ message MessageResponse {
 }
 
 message MessageNotification {
-  uint32 notify_type = 1;
+  uint32 notify_type = 1; //1表示上线,0表示下线
   string content = 2;
   uint64 timestamp = 3;
 }
@@ -72,6 +72,14 @@ message UserListRequest {
 message UserListResponse {
   repeated string userIds = 1;
   int32 totalCount = 2;
+}
+
+message KeepLiveRequest{
+  string content = 1;
+  string id = 2;
+}
+message KeepLiveResponse{
+  string content = 1;
 }
 
 // --- 统一外层包装 ---
@@ -90,5 +98,7 @@ message Message {
     MessageNotification notification = 8;
     UserListRequest userListRequest = 9;
     UserListResponse userListResponse = 10;
+    KeepLiveRequest keepLiveRequest = 11;
+    KeepLiveResponse keepLiveResponse = 12;
   }
 }

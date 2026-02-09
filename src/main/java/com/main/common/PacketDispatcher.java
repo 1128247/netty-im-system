@@ -13,15 +13,17 @@ public class PacketDispatcher extends MessageToMessageDecoder<MsgProtos.Message>
   @Override
   protected void decode(ChannelHandlerContext ctx, MsgProtos.Message msg, List<Object> out) throws Exception {
     MsgProtos.HeadType type = msg.getType();
-    log.info("请求类型: {}", type);
+    log.debug("请求类型: {}", type);
     switch (type){
-      case NOTIFICATION -> {}
+      case NOTIFICATION -> out.add(msg.getNotification());
       case LOGIN_REQUEST -> out.add(msg.getLoginRequest());
       case LOGIN_RESPONSE -> out.add(msg.getLoginResponse());
       case MESSAGE_REQUEST -> out.add(msg.getMessageRequest());
       case MESSAGE_RESPONSE -> out.add(msg.getMessageResponse());
       case USER_LIST_REQUEST -> out.add(msg.getUserListRequest());
       case USER_LIST_RESPONSE -> out.add(msg.getUserListResponse());
+      case KEEPALIVE_REQUEST -> out.add(msg.getKeepLiveRequest());
+      case KEEPALIVE_RESPONSE -> out.add(msg.getKeepLiveResponse());
     }
   }
 }

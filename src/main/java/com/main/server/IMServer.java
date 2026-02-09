@@ -4,6 +4,7 @@ import com.main.client.handler.MessageHandler;
 import com.main.common.PacketDispatcher;
 import com.main.common.ProtobufDecoder;
 import com.main.common.ProtobufEncoder;
+import com.main.server.handler.HeartBeatArtisanServerHandler;
 import com.main.server.handler.MessageRequestHandler;
 import com.main.server.handler.UserListRequestHandler;
 import com.main.server.handler.UserLoginRequestHandler;
@@ -13,6 +14,7 @@ import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateHandler;
 
 public class IMServer {
 
@@ -31,13 +33,16 @@ public class IMServer {
                 .addLast(new ProtobufDecoder())
                 .addLast(new ProtobufVarint32LengthFieldPrepender())
                 .addLast(new ProtobufEncoder())
+                .addLast(new IdleStateHandler(60 , 0 , 0 ))
                 .addLast(new PacketDispatcher())
                 .addLast(new UserLoginRequestHandler())
                 .addLast(new UserListRequestHandler())
                 .addLast(new MessageRequestHandler())
-                .addLast(new MessageHandler());
+                .addLast(new MessageHandler())
+                .addLast(new HeartBeatArtisanServerHandler());
           }
         });
+
     ChannelFuture channelFuture = bootstrap.bind(8080).sync();
     channelFuture.channel().closeFuture().sync();
   }

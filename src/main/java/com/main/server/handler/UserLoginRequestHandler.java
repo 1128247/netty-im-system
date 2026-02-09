@@ -22,7 +22,11 @@ public class UserLoginRequestHandler extends SimpleChannelInboundHandler<MsgProt
             .setInfo(success ? "登录成功" : "Token无效")
             .build())
         .build();
-
     ctx.writeAndFlush(response);
+  }
+
+  @Override
+  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    ServerSessionManager.unbindSession(ctx.channel());
   }
 }
